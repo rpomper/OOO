@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OddOneOut</title>
+  <meta charset="utf-8"/>
+  <script src="jspsych-6.1.0/jspsych.js"> </script>
+  <script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
+  <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+  <script src="jspsych-6.1.0/plugins/jspsych-audio-button-response-flexiblelocations.js"></script>
+  <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js'></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.2.0/papaparse.min.js"></script>
+  <!-- <link rel="stylesheet" href="jspsych-6.1.0/css/jspsych.css",type="text/css"> </link> -->
+  <link href="css/jspsych.css" rel="stylesheet" type="text/css"></link>
+  <style>
+  div.absolute {
+    position: absolute;
+    left: 10px;
+    right:0px;
+    top:10px;
+    border: 3px solid #73AD21;
+  }
+
+  /* p {
+    font-size:30px;
+    font-weight: normal;
+    color: black;
+    text-align: center;
+  } */
+
+  </style>
+</head>
+<body>
+  <div id="OddOneOut"></div>
+</body>
+
+<script>
+
+
+// $('body,html').addClass('stop-scrolling');
+//$('body').bind('touchmove', function(e){e.preventDefault()})
+
+
+//Enter subject id
+var subject_id = jsPsych.data.getURLVariable('sub')
+var redcap_api_token = jsPsych.data.getURLVariable('api')
+var trial_order = 1
+var trialURL = 'https://raw.githubusercontent.com/rpomper/OddOneOut/main/orders/OddOneOut-Order-1.csv';
+var version_num = "0.41"
+
+let today = new Date()
+var DoT = {"month":today.getMonth()+1,"day":today.getDate(),"year":today.getFullYear(),"hour":today.getHours(),"min":today.getMinutes()}
+
+console.log(DoT)
+
+jsPsych.data.addProperties({
+	subject: subject_id,
+	order: trial_order
+});
+
+Papa.parse(trialURL, {
+	          download: true,
+	          header: true,
+            dynamicTyping: true,
+	          complete: function(results) {
+	            var data = results.data
+	            console.log(data)
+              startExperiment(data);
+	          }
+	        })
+
+document.body.style.backgroundSize = "100%";
+document.body.style.backgroundPosition = "top";
+document.body.style.backgroundRepeat = "no-repeat";
+
+
+var timeline = []
+
+function createTrials(data) {
+
+  var expLength = data.length;
+  var audioExt="stimuli/sounds/"
+  var imageStart='<img src= "stimuli/images/'
+  // var imageStop= '.jpg"  title = "" width="90" height="100">'
+  var imageStop= '.jpg"  title = "" width="135" height="150">'
+  var rectangles = ['<img src= "stimuli/images/rectangle.jpg" width="90" height="100">', '<img src= "stimuli/images/rectangle.jpg" width="90" height="100">','<img src= "stimuli/images/rectangle.jpg" width="90" height="100">'];
+  var start_button = '<img src= "stimuli/images/start-button.jpg" title = "" width="130" height="65">'
+  var next_button = '<img src= "stimuli/images/next-button.jpg" title = "" width="130" height="65">'
+
+
+  var wait_to_start = {
+    type: "html-button-response",
+    choices:[start_button],
+    set_background: 'white-background',
+    stimulus: "<p>Subject: "+subject_id.toString()+"<br><br>Version: "+version_num+" <br><br> When you are ready, press the button below to begin.</br> </p>"
+    // stimulus: "<p style='font-size:30px;'><br> Subject: "+subject_id.toString()+"<br><br>Version: "+version_num+" <br><br> When you are ready, press the button below to begin.</br> </p>"
+  }
+
+  timeline.push(wait_to_start);
+
+
+
+  // PRACTICE
+
+
+  var practice = [{tr_num:"0-1",left_image:'0-1-foil',center_image:'0-1-foil',right_image:'0-1-target',target_side:"R",correct_response:2},
+  {tr_num:"0-2",length:1,prompt:"<h1>Now click on where the odd-one-out shape appeared on the grid below</h1>",labels1:['foil','foil','target']},
+  {tr_num:"0-3",left_image:'0-2-target',center_image:'0-2-foil',right_image:'0-2-foil',target_side:"L",correct_response:0},
+  {tr_num:"0-4",left_image:'0-3-foil',center_image:'0-3-target',right_image:'0-3-foil',target_side:"C",correct_response:1},
+  {tr_num:"0-5",length:2,prompt:"<h1>Now click on where the odd-one-out shapes appeared in the correct order</h1>",labels1:['target','foil','foil'],labels2:['foil','target','foil']}]
+
+
+    var practice_1_instructions = {
+
+      type: "html-button-response",
+      choices:[next_button],
+      set_background: 'white-background',
+      // stimulus: "<p style='font-size:60px; font-weight:bold'> Practice Trials</p><div text-align:left><p><h1 style='font-size:30px; font-weight:normal'> To begin with there are two practice trials to get you used to what you need to do. <h1>On the next page you will see three shapes <h1>Decide which shape is the odd-one-out and click on it <h1>When requested, click on where the odd-one-out appeared in the box</h1></p></div>"
+      stimulus: "<p style='font-size:60px; font-weight:bold'> Practice Trials</p><h1> To begin with there are two practice trials to get you used to what you need to do. <h1>On the next page you will see three shapes <h1>Decide which shape is the odd-one-out and click on it <h1>When requested, click on where the odd-one-out appeared in the box</h1>"
+    }
+
+
+    var practice_2_instructions = {
+
+      type: "html-button-response",
+      choices:[next_button],
+      set_background: 'white-background',
+      stimulus: "<h1> On the next practice trial you will have two pages with three shapes on each. <h1>Decide which is the odd-one-out on both pages and click on them <h1>When requested, click on where the odd-one-out shape on each page appeared in the correct order</h1>"
+
+    }
+
+
+  function practice_identify(trial) {
+
+    var practice_identify_trial = {
+      type: 'audio-button-response-flexiblelocations',
+      trial_duration: null,
+      response_ends_trial: true,
+      margin_left: ['0px','200px','200px'],
+      stimulus: undefined,
+      prompt: "<h1> Which shape is the odd-one-out?</h1><p style='text-align:center'>",
+      // choices: [imageStart+"0-1-foil"+imageStop, imageStart+"0-1-foil"+imageStop, imageStart+"0-1-target"+imageStop],
+      choices: [imageStart+practice[trial]['left_image']+imageStop, imageStart+practice[trial]['center_image']+imageStop, imageStart+practice[trial]['right_image']+imageStop],
+      set_background:"white-background",
+      data:{condition:"practice",tr_num:practice[trial]['tr_num'],target_side:practice[trial]['target_side'],correct_response:practice[trial]['correct_response']},
+      on_finish: function(data) {
+        data.correct = data.button_pressed == data.correct_response;
+      }
+    }
+    timeline.push(practice_identify_trial)
+  }
+
+
+  function practice_span(trial) {
+
+    qs = []
+
+    for (var j = 1; j <= practice[trial]['length']; j++) {
+      qs.push(
+        {prompt: practice[trial]["prompt"], options: rectangles, labels: practice[trial]['labels'+j.toString()], required: true, horizontal: true}
+      )
+    }
+
+    var practice_span_trial = {
+      type: 'survey-multi-choice',
+      questions: qs,
+      randomize_question_order: false,
+      margin_left:['0px','200px','200px'],
+      button_label: next_button,
+      data:{condition:"practice",tr_num:"1"}
+      };
+
+    timeline.push(practice_span_trial)
+
+
+  }
+
+  // var practice_span_trial = {
+  //   type: 'survey-multi-choice',
+  //   questions: [
+  //     {prompt: "<h1 style='font-size:30px; font-weight:normal'>Now click on where the odd-one-out shape appeared on the grid below</h1><p style='text-align:center'>",
+  //     options: rectangles,
+  //     labels: ['foil','foil','target'], required: false, horizontal: true,}
+  //   ],
+  //   randomize_question_order: false,
+  //   margin_left:['0px','200px','200px'],
+  //   button_label: '<img src= "stimuli/images/next-button.jpg" title = "" width="150" height="75">',
+  //   data:{condition:"practice",tr_num:"1"}
+  //   };
+
+
+  timeline.push(practice_1_instructions)
+  practice_identify(0)
+  practice_span(1)
+
+  timeline.push(practice_2_instructions)
+  practice_identify(2)
+  practice_identify(3)
+  practice_span(4)
+
+
+
+  for (var i = 0; i < expLength; i++) {
+  // for (var i = 0; i < 23; i++) {
+
+    if(data[i]['tr_type']=='instruct') {
+
+      var display_instructions = {
+        type: "html-button-response",
+        // fullscreen_mode: false,
+        choices:[next_button],
+        set_background: 'white-background',
+        stimulus: data[i]['text']
+      }
+
+      timeline.push(display_instructions)
+
+    }
+
+
+
+    if(data[i]['tr_type']=='image') {
+
+      var show_stim = {
+        type: 'audio-button-response-flexiblelocations',
+        trial_duration: null,
+        response_ends_trial: true,
+        margin_top: ['0px','0px','0px'],
+        margin_bottom: ['0px','0px','0px'],
+        margin_left: ['0px','200px','200px'],
+        margin_right: ['0px','0px','0px'],
+        stimulus: null,
+        choices: [imageStart+data[i]['left_image']+imageStop, imageStart+data[i]['center_image']+imageStop, imageStart+data[i]['right_image']+imageStop],
+        set_background:data[i]['background'],
+        data:{condition:data[i]['condition'],tr_num:data[i]['tr_num'],target_side:data[i]['target_side'],correct_response:data[i]['correct_response']},
+        on_finish: function(data) {
+          data.correct = data.button_pressed == data.correct_response;
+        }
+      }
+
+      timeline.push(show_stim)
+
+    }
+
+    if(data[i]['tr_type']=='rect') {
+
+      // console.log(data[i]["total_num"])
+
+      // var rectangles = ['<img src= "stimuli/images/rectangle.jpg" width="90" height="100">', '<img src= "stimuli/images/rectangle.jpg" width="90" height="100">','<img src= "stimuli/images/rectangle.jpg" width="90" height="100">'];
+      qs = []
+
+      for (var j = 1; j <= data[i]['length']; j++) {
+        qs.push(
+          {prompt: " ", options: rectangles, labels: data[i]['images'+j.toString()].split(","), required: true, horizontal: true}
+        )
+      }
+
+      // console.log(qs)
+
+      var multi_choice_block_horizontal = {
+        type: 'survey-multi-choice',
+        // questions: [
+        //   {prompt: " ", options: rectangles, labels: images1, required: false, horizontal: true,},
+        //   {prompt: " ", options: rectangles, labels: images2, required: false, horizontal: true}
+        // ],
+        questions: qs,
+        randomize_question_order: false,
+        margin_left:['0px','200px','200px'],
+        button_label: next_button,
+        data:{condition:data[i]['condition'],tr_num:data[i]["tr_num"]},
+        on_finish: function(data) {
+          data.all_correct = true;
+          cur_trial = data.trial_index;
+          span_acc = [];
+          console.log(cur_trial);
+          span_size = data.condition;
+          for (var s = -span_size; s < 0; s++) {
+            past_trial = jsPsych.data.get().filter({trial_index:data.trial_index+s}).values()[0];
+            if (past_trial['correct'] == true) {past_choice = past_trial['button_pressed']+"-target"}
+            if (past_trial['correct'] == false) {past_choice = past_trial['button_pressed']+"-foil"}
+            var q_num = s + span_size
+            if (past_choice == data["responses"]["Q"+q_num]) {
+              span_acc.push("true")
+            } else {
+              span_acc.push("false")
+              data.all_correct = false
+            }
+          }
+          data.span_acc = span_acc
+          console.log(data)
+
+          if(data["tr_num"]==4) {
+            console.log(data['condition'])
+            var correct_span_trials = jsPsych.data.get().filter({condition:data['condition'],trial_type:"survey-multi-choice",all_correct:true}).count()
+            console.log(correct_span_trials)
+            if (correct_span_trials < 3) {jsPsych.endExperiment("Congratulations! You are all done :)")}
+          }
+
+
+        }
+      };
+
+      timeline.push(multi_choice_block_horizontal)
+
+
+    }
+
+  }
+
+
+
+// "<p style='font-size:30px;'> When you are ready, press the space bar to begin.</br> </p>"
+
+
+  var fullscreen_exit = {
+    type: 'fullscreen',
+    fullscreen_mode: false
+  }
+  timeline.push(fullscreen_exit)
+};
+
+
+var imageExt = 'stimuli/images/'
+
+var images = [imageExt+'rectangle.jpg',
+imageExt+'white-background.jpg',
+imageExt+'black-background.jpg',
+imageExt+'start-button.jpg',
+imageExt+'next-button.jpg',
+imageExt+'ok-button.jpg',
+imageExt+'0-1-foil.jpg',
+imageExt+'0-1-target.jpg',
+imageExt+'0-2-foil.jpg',
+imageExt+'0-2-target.jpg',
+imageExt+'0-3-foil.jpg',
+imageExt+'0-3-target.jpg',
+imageExt+'1-1-foil.jpg',
+imageExt+'1-1-target.jpg',
+imageExt+'1-2-foil.jpg',
+imageExt+'1-2-target.jpg',
+imageExt+'2-1-foil.jpg',
+imageExt+'2-1-target.jpg',
+imageExt+'2-2-foil.jpg',
+imageExt+'2-2-target.jpg',
+imageExt+'2-3-foil.jpg',
+imageExt+'2-3-target.jpg',
+imageExt+'2-4-foil.jpg',
+imageExt+'2-4-target.jpg',
+imageExt+'2-5-foil.jpg',
+imageExt+'2-5-target.jpg',
+imageExt+'2-6-foil.jpg',
+imageExt+'2-6-target.jpg',
+imageExt+'2-7-foil.jpg',
+imageExt+'2-7-target.jpg',
+imageExt+'2-8-foil.jpg',
+imageExt+'2-8-target.jpg',
+imageExt+'3-1-foil.jpg',
+imageExt+'3-1-target.jpg',
+imageExt+'3-2-foil.jpg',
+imageExt+'3-2-target.jpg',
+imageExt+'3-3-foil.jpg',
+imageExt+'3-3-target.jpg',
+imageExt+'3-4-foil.jpg',
+imageExt+'3-4-target.jpg',
+imageExt+'3-5-foil.jpg',
+imageExt+'3-5-target.jpg',
+imageExt+'3-6-foil.jpg',
+imageExt+'3-6-target.jpg',
+imageExt+'3-7-foil.jpg',
+imageExt+'3-7-target.jpg',
+imageExt+'3-8-foil.jpg',
+imageExt+'3-8-target.jpg',
+imageExt+'3-9-foil.jpg',
+imageExt+'3-9-target.jpg',
+imageExt+'3-10-foil.jpg',
+imageExt+'3-10-target.jpg',
+imageExt+'3-11-foil.jpg',
+imageExt+'3-11-target.jpg',
+imageExt+'3-12-foil.jpg',
+imageExt+'3-12-target.jpg',
+imageExt+'4-1-foil.jpg',
+imageExt+'4-1-target.jpg',
+imageExt+'4-2-foil.jpg',
+imageExt+'4-2-target.jpg',
+imageExt+'4-3-foil.jpg',
+imageExt+'4-3-target.jpg',
+imageExt+'4-4-foil.jpg',
+imageExt+'4-4-target.jpg',
+imageExt+'4-5-foil.jpg',
+imageExt+'4-5-target.jpg',
+imageExt+'4-6-foil.jpg',
+imageExt+'4-6-target.jpg',
+imageExt+'4-7-foil.jpg',
+imageExt+'4-7-target.jpg',
+imageExt+'4-8-foil.jpg',
+imageExt+'4-8-target.jpg',
+imageExt+'4-9-foil.jpg',
+imageExt+'4-9-target.jpg',
+imageExt+'4-10-foil.jpg',
+imageExt+'4-10-target.jpg',
+imageExt+'4-11-foil.jpg',
+imageExt+'4-11-target.jpg',
+imageExt+'4-12-foil.jpg',
+imageExt+'4-12-target.jpg',
+imageExt+'4-13-foil.jpg',
+imageExt+'4-13-target.jpg',
+imageExt+'4-14-foil.jpg',
+imageExt+'4-14-target.jpg',
+imageExt+'4-15-foil.jpg',
+imageExt+'4-15-target.jpg',
+imageExt+'4-16-foil.jpg',
+imageExt+'4-16-target.jpg',
+imageExt+'5-1-foil.jpg',
+imageExt+'5-1-target.jpg',
+imageExt+'5-2-foil.jpg',
+imageExt+'5-2-target.jpg',
+imageExt+'5-3-foil.jpg',
+imageExt+'5-3-target.jpg',
+imageExt+'5-4-foil.jpg',
+imageExt+'5-4-target.jpg',
+imageExt+'5-5-foil.jpg',
+imageExt+'5-5-target.jpg',
+imageExt+'5-6-foil.jpg',
+imageExt+'5-6-target.jpg',
+imageExt+'5-7-foil.jpg',
+imageExt+'5-7-target.jpg',
+imageExt+'5-8-foil.jpg',
+imageExt+'5-8-target.jpg',
+imageExt+'5-9-foil.jpg',
+imageExt+'5-9-target.jpg',
+imageExt+'5-10-foil.jpg',
+imageExt+'5-10-target.jpg',
+imageExt+'5-11-foil.jpg',
+imageExt+'5-11-target.jpg',
+imageExt+'5-12-foil.jpg',
+imageExt+'5-12-target.jpg',
+imageExt+'5-13-foil.jpg',
+imageExt+'5-13-target.jpg',
+imageExt+'5-14-foil.jpg',
+imageExt+'5-14-target.jpg',
+imageExt+'5-15-foil.jpg',
+imageExt+'5-15-target.jpg',
+imageExt+'5-16-foil.jpg',
+imageExt+'5-16-target.jpg',
+imageExt+'5-17-foil.jpg',
+imageExt+'5-17-target.jpg',
+imageExt+'5-18-foil.jpg',
+imageExt+'5-18-target.jpg',
+imageExt+'5-19-foil.jpg',
+imageExt+'5-19-target.jpg',
+imageExt+'5-20-foil.jpg',
+imageExt+'5-20-target.jpg',
+imageExt+'6-1-foil.jpg',
+imageExt+'6-1-target.jpg',
+imageExt+'6-2-foil.jpg',
+imageExt+'6-2-target.jpg',
+imageExt+'6-3-foil.jpg',
+imageExt+'6-3-target.jpg',
+imageExt+'6-4-foil.jpg',
+imageExt+'6-4-target.jpg',
+imageExt+'6-5-foil.jpg',
+imageExt+'6-5-target.jpg',
+imageExt+'6-6-foil.jpg',
+imageExt+'6-6-target.jpg',
+imageExt+'6-7-foil.jpg',
+imageExt+'6-7-target.jpg',
+imageExt+'6-8-foil.jpg',
+imageExt+'6-8-target.jpg',
+imageExt+'6-9-foil.jpg',
+imageExt+'6-9-target.jpg',
+imageExt+'6-10-foil.jpg',
+imageExt+'6-10-target.jpg',
+imageExt+'6-11-foil.jpg',
+imageExt+'6-11-target.jpg',
+imageExt+'6-12-foil.jpg',
+imageExt+'6-12-target.jpg',
+imageExt+'6-13-foil.jpg',
+imageExt+'6-13-target.jpg',
+imageExt+'6-14-foil.jpg',
+imageExt+'6-14-target.jpg',
+imageExt+'6-15-foil.jpg',
+imageExt+'6-15-target.jpg',
+imageExt+'6-16-foil.jpg',
+imageExt+'6-16-target.jpg',
+imageExt+'6-17-foil.jpg',
+imageExt+'6-17-target.jpg',
+imageExt+'6-18-foil.jpg',
+imageExt+'6-18-target.jpg',
+imageExt+'6-19-foil.jpg',
+imageExt+'6-19-target.jpg',
+imageExt+'6-20-foil.jpg',
+imageExt+'6-20-target.jpg',
+imageExt+'6-21-foil.jpg',
+imageExt+'6-21-target.jpg',
+imageExt+'6-22-foil.jpg',
+imageExt+'6-22-target.jpg',
+imageExt+'6-23-foil.jpg',
+imageExt+'6-23-target.jpg',
+imageExt+'6-24-foil.jpg',
+imageExt+'6-24-target.jpg'
+]
+
+
+function postToRedcap(body) {
+  // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+  return fetch("https://study.boystown.org/api/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: body,
+  });
+}
+
+function uploadToRedcap(token) {
+  postToRedcap("token=" + token + "&content=generateNextRecordName")
+    .then(function (response) {
+      return response.text();
+    })
+    .then(function (text) {
+      const id = text;
+      postToRedcap(
+        "token=" +
+          token +
+          "&content=record&format=json&type=flat&overwriteBehavior=normal&forceAutoNumber=false&data=[" +
+          JSON.stringify({ record_id: id, subject_num: subject_id, order: trial_order, date: JSON.stringify(DoT),
+            results: jsPsych.data.get().json(),
+            results_images:jsPsych.data.get().filter({trial_type: 'audio-button-response-flexiblelocations'}).json(),
+            results_span:jsPsych.data.get().filter({trial_type: 'survey-multi-choice'}).json()
+          }) +
+          // data_export+
+          "]&returnContent=count&returnFormat=json"
+      );
+    });
+}
+
+
+function startExperiment(data) {
+  createTrials(data);
+jsPsych.init({
+  timeline: timeline,
+  // preload_audio:audio,
+  preload_images:images,
+  default_iti:0,
+  on_finish: function() {
+    jsPsych.data.displayData();
+    uploadToRedcap(redcap_api_token)
+    // save_data('yumME','V1',subject_id, jsPsych.data.dataAsCSV());
+  }
+});
+};
+
+// function save_data(experiment, version,identifier, data){
+// 	$.ajax({
+// 		type: 'post',
+// 		cache: false,
+// 		url: 'https://data.infantlearning.waisman.wisc.edu/infantdb/datastore/save/',
+// 		data: {
+// 			experiment: experiment,
+// 	version: version,
+// 			identifier: identifier,
+// 			data: data
+// 		}
+// 	})
+// };
+
+
+</script>
+
+</html>
